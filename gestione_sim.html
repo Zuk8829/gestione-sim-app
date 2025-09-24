@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione SIM</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 450px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+        }
+        .toggle-container {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toggle-container.active {
+            background-color: #2563eb;
+        }
+        .toggle-circle {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background-color: #ffffff;
+            border-radius: 9999px;
+            transition: transform 0.3s;
+        }
+        .toggle-container.active .toggle-circle {
+            transform: translateX(25px);
+        }
+        .sim-input {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            width: 100%;
+            text-align: center;
+        }
+        .sim-card {
+            border: 2px solid #e5e7eb;
+            transition: border-color 0.3s;
+        }
+        .sim-card.active {
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container p-8 rounded-3xl shadow-lg bg-white space-y-8">
+        <h1 class="text-3xl font-bold text-gray-800">Gestione Dual SIM</h1>
+        <p class="text-gray-500">Personalizza e programma le tue schede SIM.</p>
+        
+        <!-- Contenitori per le schede SIM -->
+        <div id="sim-container" class="space-y-4">
+            <!-- SIM 1 -->
+            <div id="sim1" class="sim-card p-4 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span id="sim1-name" class="text-lg font-medium">SIM 1</span>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full ml-2" id="sim1-status">Inattiva</span>
+                    </div>
+                    <div id="sim1-toggle" class="toggle-container" onclick="toggleSim('sim1')">
+                        <div class="toggle-circle"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Per le chiamate e i dati.</p>
+            </div>
+            
+            <!-- SIM 2 -->
+            <div id="sim2" class="sim-card p-4 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span id="sim2-name" class="text-lg font-medium">SIM 2</span>
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full ml-2" id="sim2-status">Inattiva</span>
+                    </div>
+                    <div id="sim2-toggle" class="toggle-container" onclick="toggleSim('sim2')">
+                        <div class="toggle-circle"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Per le chiamate e i dati.</p>
+            </div>
+        </div>
+        
+        <!-- Opzioni di personalizzazione -->
+        <div class="mt-8 space-y-4 text-left">
+            <h2 class="text-xl font-semibold text-gray-700">Personalizza Nomi SIM</h2>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-600">SIM 1:</span>
+                <input type="text" id="input-sim1" placeholder="Nome SIM 1" class="sim-input flex-grow">
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-600">SIM 2:</span>
+                <input type="text" id="input-sim2" placeholder="Nome SIM 2" class="sim-input flex-grow">
+            </div>
+        </div>
+
+        <!-- Opzioni di schedulazione -->
+        <div class="mt-8 space-y-4 text-left">
+            <h2 class="text-xl font-semibold text-gray-700">Schedulazione</h2>
+            
+            <!-- Toggle per abilitare/disabilitare -->
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Abilita Schedulazione:</span>
+                <div id="schedule-toggle" class="toggle-container" onclick="toggleSchedule()">
+                    <div class="toggle-circle"></div>
+                </div>
+            </div>
+
+            <!-- Dettagli della schedulazione -->
+            <div id="schedule-details" class="space-y-4 mt-4" style="display: none;">
+                <!-- Selezione giorni -->
+                <p class="text-gray-600">Giorni (per SIM 1 Lavoro):</p>
+                <div class="flex justify-around text-sm">
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-1" value="1" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Lun</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-2" value="2" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Mar</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-3" value="3" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Mer</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-4" value="4" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Gio</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-5" value="5" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Ven</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-6" value="6" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Sab</div>
+                    </label>
+                    <label class="flex flex-col items-center cursor-pointer">
+                        <input type="checkbox" id="day-0" value="0" class="hidden peer">
+                        <div class="w-8 h-8 flex items-center justify-center border rounded-full peer-checked:bg-blue-500 peer-checked:text-white transition-colors duration-200">Dom</div>
+                    </label>
+                </div>
+                
+                <!-- Selezione orario -->
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Attiva SIM 1 dalle:</span>
+                    <input type="time" id="start-time" class="sim-input w-2/5">
+                    <span class="text-gray-600">alle:</span>
+                    <input type="time" id="end-time" class="sim-input w-2/5">
+                </div>
+                <div class="text-sm text-gray-500">
+                    <p>La SIM 1 (Lavoro) sarà attiva nell'orario e nei giorni selezionati.</p>
+                    <p>La SIM 2 (Privata) sarà attiva al di fuori di questi orari.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="message-box" class="mt-4 p-4 text-sm rounded-xl" style="display:none;"></div>
+
+    </div>
+
+    <script>
+        // Registra il service worker per il supporto offline (PWA)
+        if ('serviceWorker' in navigator) {
+            // Verifica che il protocollo sia http o https prima di registrare il service worker
+            if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('service-worker.js')
+                        .then(reg => console.log('Service Worker registrato con successo!', reg.scope))
+                        .catch(err => console.error('Fallita la registrazione del Service Worker:', err));
+                });
+            } else {
+                console.log('Service Worker non registrato. L\'ambiente non supporta i service worker (richiede http/https).');
+            }
+        }
+
+        // Funzione per mostrare un messaggio temporaneo
+        function showMessage(message, type = 'info') {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+
+            messageBox.className = 'mt-4 p-4 text-sm rounded-xl';
+
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                messageBox.classList.add('bg-blue-100', 'text-blue-700');
+            }
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // Funzione per impostare lo stato visivo di una SIM
+        function setSimState(simId, isActive) {
+            const simCard = document.getElementById(simId);
+            const simStatus = document.getElementById(`${simId}-status`);
+            const simToggle = document.getElementById(`${simId}-toggle`);
+
+            if (isActive) {
+                simCard.classList.add('active');
+                simStatus.textContent = 'Attiva';
+                simStatus.classList.add('bg-blue-500', 'text-white');
+                simStatus.classList.remove('bg-gray-200', 'text-gray-800');
+                simToggle.classList.add('active');
+            } else {
+                simCard.classList.remove('active');
+                simStatus.textContent = 'Inattiva';
+                simStatus.classList.remove('bg-blue-500', 'text-white');
+                simStatus.classList.add('bg-gray-200', 'text-gray-800');
+                simToggle.classList.remove('active');
+            }
+        }
+
+        // Funzione per attivare/disattivare una SIM
+        function toggleSim(simId) {
+            const isActive = document.getElementById(`${simId}-toggle`).classList.contains('active');
+            const newStatus = !isActive;
+            setSimState(simId, newStatus);
+            saveSettings();
+            
+            const simName = document.getElementById(`${simId}-name`).textContent;
+            showMessage(`${simName} ${newStatus ? 'attivata' : 'disattivata'}.`, 'success');
+        }
+
+        // Funzione per salvare le impostazioni
+        function saveSettings() {
+            const sim1Name = document.getElementById('input-sim1').value || 'SIM 1';
+            const sim2Name = document.getElementById('input-sim2').value || 'SIM 2';
+            
+            localStorage.setItem('sim1Name', sim1Name);
+            localStorage.setItem('sim2Name', sim2Name);
+            document.getElementById('sim1-name').textContent = sim1Name;
+            document.getElementById('sim2-name').textContent = sim2Name;
+            
+            const sim1Active = document.getElementById('sim1-toggle').classList.contains('active');
+            const sim2Active = document.getElementById('sim2-toggle').classList.contains('active');
+            localStorage.setItem('sim1Active', sim1Active);
+            localStorage.setItem('sim2Active', sim2Active);
+
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const days = Array.from(document.querySelectorAll('#schedule-details input[type="checkbox"]:checked')).map(cb => cb.value);
+            const scheduleEnabled = document.getElementById('schedule-toggle').classList.contains('active');
+
+            localStorage.setItem('scheduleSettings', JSON.stringify({
+                enabled: scheduleEnabled,
+                startTime: startTime,
+                endTime: endTime,
+                days: days
+            }));
+        }
+
+        // Funzione per caricare le impostazioni salvate
+        function loadSettings() {
+            const sim1Name = localStorage.getItem('sim1Name') || 'SIM 1';
+            const sim2Name = localStorage.getItem('sim2Name') || 'SIM 2';
+            document.getElementById('input-sim1').value = sim1Name;
+            document.getElementById('input-sim2').value = sim2Name;
+            document.getElementById('sim1-name').textContent = sim1Name;
+            document.getElementById('sim2-name').textContent = sim2Name;
+            
+            const sim1Active = localStorage.getItem('sim1Active') === 'true';
+            const sim2Active = localStorage.getItem('sim2Active') === 'true';
+            setSimState('sim1', sim1Active);
+            setSimState('sim2', sim2Active);
+
+            const savedSettings = JSON.parse(localStorage.getItem('scheduleSettings'));
+            if (savedSettings) {
+                document.getElementById('schedule-toggle').classList.toggle('active', savedSettings.enabled);
+                document.getElementById('schedule-details').style.display = savedSettings.enabled ? 'block' : 'none';
+                document.getElementById('start-time').value = savedSettings.startTime || '09:00';
+                document.getElementById('end-time').value = savedSettings.endTime || '17:00';
+                savedSettings.days.forEach(day => {
+                    const checkbox = document.getElementById(`day-${day}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+
+                if (savedSettings.enabled) {
+                    startScheduler();
+                }
+            }
+        }
+
+        // Event listener per salvare le impostazioni alla modifica degli input
+        document.getElementById('input-sim1').addEventListener('input', saveSettings);
+        document.getElementById('input-sim2').addEventListener('input', saveSettings);
+        document.getElementById('start-time').addEventListener('input', saveSettings);
+        document.getElementById('end-time').addEventListener('input', saveSettings);
+        document.querySelectorAll('#schedule-details input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', saveSettings);
+        });
+
+        let schedulerInterval = null;
+
+        // Funzione per avviare lo scheduler
+        function startScheduler() {
+            if (schedulerInterval) return;
+            schedulerInterval = setInterval(checkSchedule, 60000);
+            checkSchedule();
+        }
+
+        // Funzione per fermare lo scheduler
+        function stopScheduler() {
+            clearInterval(schedulerInterval);
+            schedulerInterval = null;
+        }
+
+        // Funzione per abilitare/disabilitare la schedulazione
+        function toggleSchedule() {
+            const toggle = document.getElementById('schedule-toggle');
+            const details = document.getElementById('schedule-details');
+            const isActive = toggle.classList.toggle('active');
+            
+            details.style.display = isActive ? 'block' : 'none';
+            
+            if (isActive) {
+                startScheduler();
+                showMessage('Schedulazione abilitata!', 'success');
+            } else {
+                stopScheduler();
+                showMessage('Schedulazione disabilitata.', 'info');
+            }
+            saveSettings();
+        }
+
+        // Funzione per controllare la schedulazione
+        function checkSchedule() {
+            const savedSettings = JSON.parse(localStorage.getItem('scheduleSettings'));
+            if (!savedSettings || !savedSettings.enabled) return;
+
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const isWorkday = savedSettings.days.includes(currentDay.toString());
+            const isWorkTime = currentTime >= savedSettings.startTime && currentTime < savedSettings.endTime;
+
+            const sim1Name = localStorage.getItem('sim1Name') || 'SIM 1';
+            const sim2Name = localStorage.getItem('sim2Name') || 'SIM 2';
+
+            const sim1Status = document.getElementById('sim1-status').textContent === 'Attiva';
+            const sim2Status = document.getElementById('sim2-status').textContent === 'Attiva';
+
+            if (isWorkday && isWorkTime) {
+                if (!sim1Status) {
+                    setSimState('sim1', true);
+                    showMessage(`Schedulazione: Attivata ${sim1Name} (Lavoro).`, 'info');
+                }
+                if (sim2Status) {
+                    setSimState('sim2', false);
+                    showMessage(`Schedulazione: Disattivata ${sim2Name} (Privata).`, 'info');
+                }
+            } else {
+                if (!sim2Status) {
+                    setSimState('sim2', true);
+                    showMessage(`Schedulazione: Attivata ${sim2Name} (Privata).`, 'info');
+                }
+                if (sim1Status) {
+                    setSimState('sim1', false);
+                    showMessage(`Schedulazione: Disattivata ${sim1Name} (Lavoro).`, 'info');
+                }
+            }
+            saveSettings();
+        }
+
+        // Carica le impostazioni all'avvio
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+        });
+
+    </script>
+</body>
+</html>
